@@ -21,8 +21,7 @@ export default function ShareCard({ guideId, title, published }: Props) {
 
   useEffect(() => {
     if (!published) return
-    const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? window.location.origin
-    const guideUrl = `${base}/guide/${guideId}`
+    const guideUrl = `${window.location.origin}/guide/${guideId}`
     setUrl(guideUrl)
 
     // Generate inline preview at 256px — small, fast, immediately scannable
