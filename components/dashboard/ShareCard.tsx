@@ -13,7 +13,8 @@ export default function ShareCard({ guideId, title, published }: Props) {
   const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
-    setUrl(`${window.location.origin}/guide/${guideId}`)
+    const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? window.location.origin
+    setUrl(`${base}/guide/${guideId}`)
   }, [guideId])
 
   async function copyLink() {
