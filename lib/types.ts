@@ -19,6 +19,9 @@ export type Database = {
           parking_instructions: string | null
           trash_instructions: string | null
           emergency_contact: string | null
+          tv_entertainment: string | null
+          laundry: string | null
+          amenities: string | null
         }
         Insert: {
           id?: string
@@ -35,6 +38,9 @@ export type Database = {
           parking_instructions?: string | null
           trash_instructions?: string | null
           emergency_contact?: string | null
+          tv_entertainment?: string | null
+          laundry?: string | null
+          amenities?: string | null
         }
         Update: {
           id?: string
@@ -49,6 +55,9 @@ export type Database = {
           parking_instructions?: string | null
           trash_instructions?: string | null
           emergency_contact?: string | null
+          tv_entertainment?: string | null
+          laundry?: string | null
+          amenities?: string | null
         }
         Relationships: []
       }

@@ -51,6 +51,36 @@ function PhoneIcon() {
   )
 }
 
+function TvIcon() {
+  return (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <path d="M8 21h8M12 17v4"/>
+    </svg>
+  )
+}
+
+function WashingMachineIcon() {
+  return (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="2"/>
+      <circle cx="12" cy="13" r="5"/>
+      <circle cx="12" cy="13" r="2"/>
+      <path d="M7 7h.01M11 7h2"/>
+    </svg>
+  )
+}
+
+function SparklesIcon() {
+  return (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/>
+      <path d="M5 17l.6 1.8L7.4 19.4l-1.8.6L5 21.8l-.6-1.8L2.6 19.4l1.8-.6L5 17z"/>
+      <path d="M19 2l.6 1.8 1.8.6-1.8.6L19 6.8l-.6-1.8-1.8-.6 1.8-.6L19 2z"/>
+    </svg>
+  )
+}
+
 function WifiIcon() {
   return (
     <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -71,7 +101,10 @@ const SECTIONS: Record<string, SectionMeta> = {
   checkout_checklist:   { icon: <ChecklistIcon />, label: 'Checkout',          color: 'text-violet-600', bg: 'bg-violet-50' },
   parking_instructions: { icon: <CarIcon />,       label: 'Parking',           color: 'text-sky-600',    bg: 'bg-sky-50'    },
   trash_instructions:   { icon: <TrashIcon />,     label: 'Trash & recycling', color: 'text-teal-600',   bg: 'bg-teal-50'   },
-  emergency_contact:    { icon: <PhoneIcon />,     label: 'Emergency contact', color: 'text-rose-600',   bg: 'bg-rose-50'   },
+  emergency_contact:    { icon: <PhoneIcon />,          label: 'Emergency contact', color: 'text-rose-600',   bg: 'bg-rose-50'   },
+  tv_entertainment:     { icon: <TvIcon />,             label: 'TV & Entertainment', color: 'text-blue-600',   bg: 'bg-blue-50'   },
+  laundry:              { icon: <WashingMachineIcon />, label: 'Laundry',            color: 'text-cyan-600',   bg: 'bg-cyan-50'   },
+  amenities:            { icon: <SparklesIcon />,       label: 'Amenities',          color: 'text-indigo-600', bg: 'bg-indigo-50' },
 }
 
 function Section({ icon, label, color, bg, children }: SectionMeta & { children: ReactNode }) {
@@ -94,14 +127,14 @@ export default async function GuestGuidePage({ params }: { params: { id: string 
   const supabase = await createServerSupabaseClient()
   const { data: guide } = await supabase
     .from('guides')
-    .select('title, wifi_name, wifi_password, checkin_instructions, checkout_checklist, parking_instructions, trash_instructions, emergency_contact')
+    .select('title, wifi_name, wifi_password, checkin_instructions, checkout_checklist, parking_instructions, trash_instructions, emergency_contact, tv_entertainment, laundry, amenities')
     .eq('id', params.id)
     .eq('published', true)
     .single()
 
   if (!guide) notFound()
 
-  const ORDER = ['checkin_instructions', 'checkout_checklist', 'parking_instructions', 'trash_instructions', 'emergency_contact'] as const
+  const ORDER = ['checkin_instructions', 'checkout_checklist', 'tv_entertainment', 'laundry', 'amenities', 'parking_instructions', 'trash_instructions', 'emergency_contact'] as const
 
   return (
     <div className="min-h-screen bg-[#F9F8F6]">

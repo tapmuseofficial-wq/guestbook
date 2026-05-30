@@ -48,6 +48,9 @@ export async function updateGuide(id: string, _: unknown, formData: FormData) {
       parking_instructions:  str('parking_instructions'),
       trash_instructions:    str('trash_instructions'),
       emergency_contact:     str('emergency_contact'),
+      tv_entertainment:      str('tv_entertainment'),
+      laundry:               str('laundry'),
+      amenities:             str('amenities'),
     })
     .eq('id', id)
     .eq('user_id', user.id)

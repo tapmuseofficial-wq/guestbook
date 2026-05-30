@@ -14,6 +14,9 @@ const FIELDS: Field[] = [
   { key: 'parking_instructions',  label: 'Parking',                placeholder: 'Park in spot #12 in the garage. Use the blue remote on the key ring…', rows: 3 },
   { key: 'trash_instructions',    label: 'Trash & recycling',      placeholder: 'Bins are on the left side of the house. Pickup is Tuesday morning…', rows: 3 },
   { key: 'emergency_contact',     label: 'Emergency contact',      placeholder: 'Jane (host): +1 555 123 4567\nBuilding manager: +1 555 987 6543', rows: 2 },
+  { key: 'tv_entertainment',      label: 'TV & Entertainment',     placeholder: 'Smart TV — Netflix: guest@email.com / Pass: xxxxx\nHBO Max, Hulu, and Apple TV also logged in. Remote is on the side table…', rows: 3 },
+  { key: 'laundry',               label: 'Laundry',                placeholder: 'Washer/dryer in the hallway closet. Detergent on the shelf above.\nUse cold water, regular cycle. Dryer takes about 45 min…', rows: 3 },
+  { key: 'amenities',             label: 'Amenities',              placeholder: 'Pool: open 8am–10pm, towels at the gate.\nGym: 24/7 access with key fob.\nHot tub: heated to 102°F year-round…', rows: 3 },
 ]
 
 const INPUT = "w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
@@ -30,6 +33,9 @@ export default function GuideEditor({ guide }: { guide: Guide }) {
     parking_instructions:  guide.parking_instructions  ?? '',
     trash_instructions:    guide.trash_instructions    ?? '',
     emergency_contact:     guide.emergency_contact     ?? '',
+    tv_entertainment:      guide.tv_entertainment      ?? '',
+    laundry:               guide.laundry               ?? '',
+    amenities:             guide.amenities             ?? '',
   })
   const [saved,     setSaved]     = useState(false)
   const [error,     setError]     = useState('')
