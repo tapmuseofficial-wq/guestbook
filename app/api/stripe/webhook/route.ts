@@ -31,23 +31,25 @@ export async function POST(req: NextRequest) {
     if (!userId || !session.subscription) return NextResponse.json({ ok: true })
 
     const sub = await stripe.subscriptions.retrieve(session.subscription as string)
+    const periodEnd = sub.items.data[0]?.current_period_end
     await db.from('subscriptions').upsert({
       user_id: userId,
       stripe_customer_id: session.customer as string,
       stripe_subscription_id: sub.id,
       plan: 'pro',
       status: 'active',
-      current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' })
   }
 
   if (event.type === 'customer.subscription.updated') {
     const sub = event.data.object as Stripe.Subscription
+    const periodEnd = sub.items.data[0]?.current_period_end
     await db.from('subscriptions').update({
       status: sub.status === 'active' ? 'active' : sub.status,
       plan: sub.status === 'active' ? 'pro' : 'free',
-      current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     }).eq('stripe_subscription_id', sub.id)
   }

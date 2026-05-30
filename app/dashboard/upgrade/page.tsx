@@ -11,15 +11,6 @@ function CheckIcon() {
   )
 }
 
-function LockIcon() {
-  return (
-    <svg className="w-4 h-4 text-stone-300 shrink-0" viewBox="0 0 16 16" fill="none">
-      <rect x="2" y="7" width="12" height="8" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  )
-}
-
 const FREE_FEATURES = [
   '1 property guide',
   'Wi-Fi info',
