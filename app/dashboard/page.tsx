@@ -1,18 +1,51 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getUserPlan } from '@/lib/subscription'
 import GuideCard from '@/components/dashboard/GuideCard'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { upgraded?: string }
+}) {
   const supabase = await createServerSupabaseClient()
-  const { data: guides } = await supabase
-    .from('guides')
-    .select('id, title, slug, published, updated_at')
-    .order('updated_at', { ascending: false })
+  const [{ data: guides }, plan] = await Promise.all([
+    supabase
+      .from('guides')
+      .select('id, title, slug, published, updated_at')
+      .order('updated_at', { ascending: false }),
+    getUserPlan(),
+  ])
 
   const count = guides?.length ?? 0
+  const atFreeLimit = plan === 'free' && count >= 1
+  const showUpgradedBanner = searchParams.upgraded === '1'
 
   return (
     <div>
+      {showUpgradedBanner && (
+        <div className="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200/80 text-emerald-800 rounded-2xl px-5 py-3.5 text-sm font-medium">
+          <svg className="w-4 h-4 text-emerald-500 shrink-0" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8l3.5 3.5L13 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          You&apos;re now on Pro. All features unlocked — enjoy!
+        </div>
+      )}
+
+      {atFreeLimit && (
+        <div className="mb-6 flex items-center justify-between gap-4 bg-indigo-50 border border-indigo-200/60 rounded-2xl px-5 py-3.5">
+          <p className="text-sm text-indigo-900 font-medium">
+            Free plan · 1 property limit reached
+          </p>
+          <Link
+            href="/dashboard/upgrade"
+            className="shrink-0 text-xs font-semibold px-3.5 py-1.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          >
+            Upgrade to Pro →
+          </Link>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-end justify-between mb-8">
         <div>
@@ -21,15 +54,27 @@ export default async function DashboardPage() {
             {count} {count === 1 ? 'guide' : 'guides'}
           </p>
         </div>
-        <Link
-          href="/dashboard/new"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-            <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          New guide
-        </Link>
+        {atFreeLimit ? (
+          <Link
+            href="/dashboard/upgrade"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-stone-100 text-stone-500 text-sm font-semibold rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+              <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            New guide
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+              <path d="M6.5 1v11M1 6.5h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            New guide
+          </Link>
+        )}
       </div>
 
       {guides && guides.length > 0 ? (

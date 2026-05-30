@@ -1,20 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
-type Props = { guideId: string; title: string; published: boolean }
+type Props = { guideId: string; title: string; published: boolean; isPro: boolean }
 
 function slugify(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
 const QR_OPTS = {
-  margin: 4,               // spec minimum quiet zone
-  errorCorrectionLevel: 'H' as const, // highest redundancy — survives partial damage
-  color: { dark: '#000000', light: '#ffffff' }, // pure black on white
+  margin: 4,
+  errorCorrectionLevel: 'H' as const,
+  color: { dark: '#000000', light: '#ffffff' },
 }
 
-export default function ShareCard({ guideId, title, published }: Props) {
+export default function ShareCard({ guideId, title, published, isPro }: Props) {
   const [url, setUrl]               = useState('')
   const [qrPreview, setQrPreview]   = useState('')
   const [linkCopied, setLinkCopied] = useState(false)
@@ -24,7 +25,6 @@ export default function ShareCard({ guideId, title, published }: Props) {
     const guideUrl = `${window.location.origin}/guide/${guideId}`
     setUrl(guideUrl)
 
-    // Generate inline preview at 256px — small, fast, immediately scannable
     import('qrcode').then(({ default: QRCode }) => {
       QRCode.toDataURL(guideUrl, { ...QR_OPTS, width: 256 }).then(setQrPreview)
     })
@@ -38,7 +38,6 @@ export default function ShareCard({ guideId, title, published }: Props) {
 
   async function downloadQR() {
     const { default: QRCode } = await import('qrcode')
-    // 1024px for crisp printing at any size
     const dataUrl = await QRCode.toDataURL(url, { ...QR_OPTS, width: 1024 })
     const a = document.createElement('a')
     a.href = dataUrl
@@ -109,7 +108,7 @@ export default function ShareCard({ guideId, title, published }: Props) {
         </button>
       </div>
 
-      {/* Inline QR preview — scan this to verify before downloading */}
+      {/* QR preview — always show for quick scanning */}
       {qrPreview && (
         <div className="flex flex-col items-center gap-2 py-2">
           <img
@@ -125,20 +124,33 @@ export default function ShareCard({ guideId, title, published }: Props) {
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2">
-        <button
-          onClick={downloadQR}
-          className="flex-1 py-2.5 text-sm font-semibold border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors text-stone-600"
-        >
-          Download QR
-        </button>
-        <button
-          onClick={printWelcomeCard}
-          className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          Print Welcome Card
-        </button>
-      </div>
+      {isPro ? (
+        <div className="flex gap-2">
+          <button
+            onClick={downloadQR}
+            className="flex-1 py-2.5 text-sm font-semibold border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors text-stone-600"
+          >
+            Download QR
+          </button>
+          <button
+            onClick={printWelcomeCard}
+            className="flex-1 py-2.5 text-sm font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            Print Welcome Card
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-xl bg-stone-50 border border-stone-200/80 p-4 text-center space-y-2">
+          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Pro feature</p>
+          <p className="text-sm text-stone-500">QR download and printable welcome card require Pro.</p>
+          <Link
+            href="/dashboard/upgrade"
+            className="inline-block mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+          >
+            Upgrade to Pro →
+          </Link>
+        </div>
+      )}
     </section>
   )
 }

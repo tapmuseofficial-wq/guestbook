@@ -16,6 +16,24 @@ export async function createGuide(_: unknown, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth')
 
+  // Free plan: max 1 guide
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('plan, status')
+    .eq('user_id', user.id)
+    .single()
+  const isPro = sub?.plan === 'pro' && sub?.status === 'active'
+
+  if (!isPro) {
+    const { count } = await supabase
+      .from('guides')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+    if ((count ?? 0) >= 1) {
+      return { error: 'Free plan is limited to 1 property. Upgrade to Pro for unlimited guides.' }
+    }
+  }
+
   const title = formData.get('title') as string
   const slug = (formData.get('slug') as string).trim() || slugify(title)
 

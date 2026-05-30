@@ -3,6 +3,39 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export type Database = {
   public: {
     Tables: {
+      subscriptions: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          plan: string
+          status: string
+          current_period_end: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          plan?: string
+          status?: string
+          current_period_end?: string | null
+        }
+        Update: {
+          updated_at?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          plan?: string
+          status?: string
+          current_period_end?: string | null
+        }
+        Relationships: []
+      }
       guides: {
         Row: {
           id: string
@@ -72,3 +105,4 @@ export type Database = {
 export type Guide = Database['public']['Tables']['guides']['Row']
 export type GuideInsert = Database['public']['Tables']['guides']['Insert']
 export type GuideUpdate = Database['public']['Tables']['guides']['Update']
+export type Subscription = Database['public']['Tables']['subscriptions']['Row']

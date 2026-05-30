@@ -6,22 +6,31 @@ import { updateGuide, togglePublished, deleteGuide } from '@/lib/actions'
 import type { Guide } from '@/lib/types'
 import ShareCard from './ShareCard'
 
-type Field = { key: keyof Guide; label: string; placeholder: string; rows?: number }
+type Field = { key: keyof Guide; label: string; placeholder: string; rows?: number; proOnly?: boolean }
 
 const FIELDS: Field[] = [
   { key: 'checkin_instructions',  label: 'Check-in instructions',  placeholder: 'Key is in the lockbox (code: 1234). Enter through the side gate…', rows: 4 },
   { key: 'checkout_checklist',    label: 'Checkout checklist',     placeholder: 'Strip the beds and leave towels in the bathtub. Lock the front door…', rows: 4 },
-  { key: 'parking_instructions',  label: 'Parking',                placeholder: 'Park in spot #12 in the garage. Use the blue remote on the key ring…', rows: 3 },
-  { key: 'trash_instructions',    label: 'Trash & recycling',      placeholder: 'Bins are on the left side of the house. Pickup is Tuesday morning…', rows: 3 },
-  { key: 'emergency_contact',     label: 'Emergency contact',      placeholder: 'Jane (host): +1 555 123 4567\nBuilding manager: +1 555 987 6543', rows: 2 },
-  { key: 'tv_entertainment',      label: 'TV & Entertainment',     placeholder: 'Smart TV — Netflix: guest@email.com / Pass: xxxxx\nHBO Max, Hulu, and Apple TV also logged in. Remote is on the side table…', rows: 3 },
-  { key: 'laundry',               label: 'Laundry',                placeholder: 'Washer/dryer in the hallway closet. Detergent on the shelf above.\nUse cold water, regular cycle. Dryer takes about 45 min…', rows: 3 },
-  { key: 'amenities',             label: 'Amenities',              placeholder: 'Pool: open 8am–10pm, towels at the gate.\nGym: 24/7 access with key fob.\nHot tub: heated to 102°F year-round…', rows: 3 },
+  { key: 'parking_instructions',  label: 'Parking',                placeholder: 'Park in spot #12 in the garage. Use the blue remote on the key ring…', rows: 3, proOnly: true },
+  { key: 'trash_instructions',    label: 'Trash & recycling',      placeholder: 'Bins are on the left side of the house. Pickup is Tuesday morning…', rows: 3, proOnly: true },
+  { key: 'emergency_contact',     label: 'Emergency contact',      placeholder: 'Jane (host): +1 555 123 4567\nBuilding manager: +1 555 987 6543', rows: 2, proOnly: true },
+  { key: 'tv_entertainment',      label: 'TV & Entertainment',     placeholder: 'Smart TV — Netflix: guest@email.com / Pass: xxxxx\nHBO Max, Hulu, and Apple TV also logged in…', rows: 3, proOnly: true },
+  { key: 'laundry',               label: 'Laundry',                placeholder: 'Washer/dryer in the hallway closet. Detergent on the shelf above…', rows: 3, proOnly: true },
+  { key: 'amenities',             label: 'Amenities',              placeholder: 'Pool: open 8am–10pm, towels at the gate.\nGym: 24/7 access with key fob…', rows: 3, proOnly: true },
 ]
 
 const INPUT = "w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
 
-export default function GuideEditor({ guide }: { guide: Guide }) {
+function LockIcon() {
+  return (
+    <svg className="w-5 h-5 text-stone-400" viewBox="0 0 20 20" fill="none">
+      <rect x="3" y="9" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+export default function GuideEditor({ guide, isPro }: { guide: Guide; isPro: boolean }) {
   const [title,        setTitle]        = useState(guide.title)
   const [slug,         setSlug]         = useState(guide.slug)
   const [published,    setPublished]    = useState(guide.published)
@@ -136,18 +145,48 @@ export default function GuideEditor({ guide }: { guide: Guide }) {
         </section>
 
         {/* Content fields */}
-        {FIELDS.map(({ key, label, placeholder, rows }) => (
-          <section key={key} className="bg-white rounded-2xl border border-stone-200/70 shadow-sm p-5 space-y-3">
-            <h2 className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest">{label}</h2>
-            <textarea
-              value={fields[key as string] ?? ''}
-              onChange={e => setFields(f => ({ ...f, [key]: e.target.value }))}
-              rows={rows ?? 3}
-              placeholder={placeholder}
-              className={`${INPUT} resize-y`}
-            />
-          </section>
-        ))}
+        {FIELDS.map(({ key, label, placeholder, rows, proOnly }) => {
+          const locked = proOnly && !isPro
+          return (
+            <section key={key} className="bg-white rounded-2xl border border-stone-200/70 shadow-sm p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest">{label}</h2>
+                {locked && (
+                  <span className="text-[10px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    Pro
+                  </span>
+                )}
+              </div>
+              {locked ? (
+                <div className="relative">
+                  <textarea
+                    value="Upgrade to Pro to unlock this section."
+                    readOnly
+                    rows={rows ?? 3}
+                    className={`${INPUT} resize-none blur-[2px] pointer-events-none select-none text-stone-400`}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl bg-white/70">
+                    <LockIcon />
+                    <Link
+                      href="/dashboard/upgrade"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                    >
+                      Upgrade to Pro to unlock →
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <textarea
+                  value={fields[key as string] ?? ''}
+                  onChange={e => setFields(f => ({ ...f, [key]: e.target.value }))}
+                  rows={rows ?? 3}
+                  placeholder={placeholder}
+                  className={`${INPUT} resize-y`}
+                />
+              )}
+            </section>
+          )
+        })}
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-1">
@@ -164,7 +203,7 @@ export default function GuideEditor({ guide }: { guide: Guide }) {
         </div>
       </form>
 
-      <ShareCard guideId={guide.id} title={title} published={published} />
+      <ShareCard guideId={guide.id} title={title} published={published} isPro={isPro} />
     </div>
   )
 }
