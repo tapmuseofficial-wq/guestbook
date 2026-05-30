@@ -8,14 +8,28 @@ function slugify(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+const QR_OPTS = {
+  margin: 4,               // spec minimum quiet zone
+  errorCorrectionLevel: 'H' as const, // highest redundancy — survives partial damage
+  color: { dark: '#000000', light: '#ffffff' }, // pure black on white
+}
+
 export default function ShareCard({ guideId, title, published }: Props) {
-  const [url, setUrl]             = useState('')
+  const [url, setUrl]               = useState('')
+  const [qrPreview, setQrPreview]   = useState('')
   const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
+    if (!published) return
     const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? window.location.origin
-    setUrl(`${base}/guide/${guideId}`)
-  }, [guideId])
+    const guideUrl = `${base}/guide/${guideId}`
+    setUrl(guideUrl)
+
+    // Generate inline preview at 256px — small, fast, immediately scannable
+    import('qrcode').then(({ default: QRCode }) => {
+      QRCode.toDataURL(guideUrl, { ...QR_OPTS, width: 256 }).then(setQrPreview)
+    })
+  }, [guideId, published])
 
   async function copyLink() {
     await navigator.clipboard.writeText(url)
@@ -24,11 +38,9 @@ export default function ShareCard({ guideId, title, published }: Props) {
   }
 
   async function downloadQR() {
-    const QRCode = (await import('qrcode')).default
-    const dataUrl = await QRCode.toDataURL(url, {
-      width: 512, margin: 2,
-      color: { dark: '#1c1917', light: '#ffffff' },
-    })
+    const { default: QRCode } = await import('qrcode')
+    // 1024px for crisp printing at any size
+    const dataUrl = await QRCode.toDataURL(url, { ...QR_OPTS, width: 1024 })
     const a = document.createElement('a')
     a.href = dataUrl
     a.download = `${slugify(title)}-qr.png`
@@ -40,10 +52,9 @@ export default function ShareCard({ guideId, title, published }: Props) {
       import('qrcode'),
       import('jspdf'),
     ])
-    const qrDataUrl = await QRCode.toDataURL(url, {
-      width: 512, margin: 2,
-      color: { dark: '#1c1917', light: '#ffffff' },
-    })
+    const qrDataUrl = await QRCode.toDataURL(url, { ...QR_OPTS, width: 1024 })
+
+    // A6 postcard: 105 × 148 mm
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [105, 148] })
 
     pdf.setDrawColor(231, 229, 228)
@@ -84,6 +95,7 @@ export default function ShareCard({ guideId, title, published }: Props) {
     <section className="bg-white rounded-2xl border border-stone-200/70 shadow-sm p-5 space-y-4">
       <h2 className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest">Share</h2>
 
+      {/* URL row */}
       <div className="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2.5">
         <span className="text-sm text-stone-500 truncate flex-1 font-mono">{url}</span>
         <button
@@ -98,6 +110,22 @@ export default function ShareCard({ guideId, title, published }: Props) {
         </button>
       </div>
 
+      {/* Inline QR preview — scan this to verify before downloading */}
+      {qrPreview && (
+        <div className="flex flex-col items-center gap-2 py-2">
+          <img
+            src={qrPreview}
+            alt="QR code"
+            width={128}
+            height={128}
+            className="rounded-lg border border-stone-100"
+            style={{ imageRendering: 'pixelated' }}
+          />
+          <p className="text-[11px] text-stone-400">Scan to verify before downloading</p>
+        </div>
+      )}
+
+      {/* Action buttons */}
       <div className="flex gap-2">
         <button
           onClick={downloadQR}
